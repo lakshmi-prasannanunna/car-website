@@ -1,0 +1,1239 @@
+/* ==========================================================================
+   NOCTIS — DESIGN TOKENS & RESET
+   Mood: Total blackout at night; the car's light is the only light.
+   Flat solid colours, 1px hairlines, photography and type. No gradients,
+   no glassmorphism, no glows, no shadows, no rounded bubbly cards.
+   ========================================================================== */
+
+:root {
+  --asphalt: #07080A;
+  --graphite: #121418;
+  --fog: #8A8F98;
+  --bone: #EDEAE4;
+  --xenon: #CFE3FF;
+  --taillight: #E1251B;
+  --hairline: rgba(237, 234, 228, 0.12);
+  --hairline-solid: #212429;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --font-display: 'Archivo', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-hud: 'JetBrains Mono', monospace;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background-color: var(--asphalt);
+  color: var(--bone);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  scroll-behavior: smooth;
+  overflow-x: clip; /* Never use overflow:hidden on ancestors of sticky stage */
+}
+
+body {
+  background-color: var(--asphalt);
+  color: var(--bone);
+  overflow-x: clip;
+  min-height: 100vh;
+  position: relative;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ==========================================================================
+   TYPOGRAPHY
+   ========================================================================== */
+
+.display-type {
+  font-family: var(--font-display);
+  font-variation-settings: 'wdth' 125;
+  font-stretch: 125%;
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: clamp(40px, 7vw, 120px);
+  line-height: 0.95;
+  color: var(--bone);
+}
+
+.body-type {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: clamp(15px, 1.2vw, 17px);
+  line-height: 1.6;
+  max-width: 52ch;
+  color: var(--fog);
+}
+
+.mono-hud {
+  font-family: var(--font-hud);
+  font-weight: 400;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  line-height: 1.2;
+}
+
+.section-tag {
+  display: inline-block;
+  color: var(--fog);
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.18em;
+}
+
+/* Line reveal masking */
+.line-mask {
+  overflow: hidden;
+  display: block;
+}
+
+.line-mask > * {
+  display: block;
+  transform: translateY(100%);
+  transition: transform 0.9s var(--ease);
+}
+
+.is-revealed .line-mask > * {
+  transform: translateY(0);
+}
+
+/* Delay helpers for line stagger */
+.line-mask:nth-child(1) > * { transition-delay: 0.00s; }
+.line-mask:nth-child(2) > * { transition-delay: 0.08s; }
+.line-mask:nth-child(3) > * { transition-delay: 0.16s; }
+
+/* ==========================================================================
+   FOCUS & ACCESSIBILITY
+   ========================================================================== */
+
+:focus-visible {
+  outline: 1px solid var(--xenon);
+  outline-offset: 4px;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   FILM GRAIN OVERLAY (Offscreen Noise Shifted ~8 times/sec)
+   ========================================================================== */
+
+.grain-canvas {
+  position: fixed;
+  top: -50px;
+  left: -50px;
+  width: calc(100vw + 100px);
+  height: calc(100vh + 100px);
+  pointer-events: none;
+  z-index: 9990;
+  opacity: 0.035; /* 3-4% opacity */
+}
+
+/* ==========================================================================
+   CUSTOM CURSOR ("The Headlight", Desktop Fine Pointer Only)
+   ========================================================================== */
+
+@media (pointer: fine) {
+  body.has-custom-cursor,
+  body.has-custom-cursor a,
+  body.has-custom-cursor button {
+    cursor: none;
+  }
+
+  .cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    will-change: transform;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 28px outer ring with 1px xenon stroke */
+  .cursor-ring {
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--xenon);
+    border-radius: 50%;
+    position: absolute;
+    transition: transform 0.35s var(--ease), opacity 0.25s var(--ease), border-color 0.12s linear;
+  }
+
+  /* 6px solid xenon dot */
+  .cursor-dot {
+    width: 6px;
+    height: 6px;
+    background-color: var(--xenon);
+    border-radius: 50%;
+    position: absolute;
+    transition: transform 0.35s var(--ease), opacity 0.25s var(--ease), background-color 0.12s linear;
+  }
+
+  /* 44x2px horizontal light bar */
+  .cursor-bar {
+    width: 44px;
+    height: 2px;
+    background-color: var(--xenon);
+    position: absolute;
+    opacity: 0;
+    transform: scaleX(0.2);
+    transition: transform 0.35s var(--ease), opacity 0.25s var(--ease), background-color 0.12s linear;
+  }
+
+  /* Tiny mono label beside the light bar */
+  .cursor-label {
+    position: absolute;
+    left: 32px;
+    font-family: var(--font-hud);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--xenon);
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity 0.25s var(--ease), transform 0.25s var(--ease);
+  }
+
+  /* Hover morph into 44x2px light bar */
+  .cursor.is-hovering .cursor-ring {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  .cursor.is-hovering .cursor-dot {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  .cursor.is-hovering .cursor-bar {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  .cursor.is-hovering .cursor-label {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* Mousedown flash (120ms) */
+  .cursor.is-down .cursor-bar,
+  .cursor.is-down .cursor-dot {
+    background-color: #FFFFFF;
+  }
+  .cursor.is-down .cursor-ring {
+    border-color: #FFFFFF;
+  }
+}
+
+@media (pointer: coarse) {
+  .cursor {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   PRELOADER
+   ========================================================================== */
+
+.preloader {
+  position: fixed;
+  inset: 0;
+  background-color: var(--asphalt);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.8s var(--ease), visibility 0.8s var(--ease);
+}
+
+.preloader.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.preloader-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  width: min(80vw, 420px);
+}
+
+.preloader-brand {
+  font-size: clamp(32px, 5vw, 64px);
+  color: var(--bone);
+  letter-spacing: 0.08em;
+}
+
+.preloader-line-track {
+  width: 100%;
+  height: 1px;
+  background-color: var(--hairline-solid);
+  position: relative;
+  overflow: hidden;
+}
+
+.preloader-line {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  height: 100%;
+  width: 0%;
+  background-color: var(--xenon);
+  transform: translateX(-50%);
+  transition: width 0.15s ease-out, background-color 0.15s linear;
+}
+
+.preloader.is-exiting .preloader-line {
+  background-color: #FFFFFF;
+  box-shadow: none;
+}
+
+.preloader-counter {
+  color: var(--fog);
+  font-size: 12px;
+}
+
+/* ==========================================================================
+   NAVBAR (mix-blend-mode: difference, hides down, shows up)
+   ========================================================================== */
+
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 2.2rem 3.5rem;
+  z-index: 900;
+  mix-blend-mode: difference;
+  transform: translateY(0);
+  transition: transform 0.6s var(--ease);
+  pointer-events: none;
+}
+
+.site-header.is-hidden {
+  transform: translateY(-100%);
+}
+
+.header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 1720px;
+  margin: 0 auto;
+  pointer-events: auto;
+}
+
+.brand-logo {
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: #FFFFFF;
+}
+
+.site-nav {
+  display: flex;
+  gap: 2.8rem;
+}
+
+.nav-link {
+  font-size: 11px;
+  color: #FFFFFF;
+  transition: opacity 0.2s linear;
+  position: relative;
+  padding: 4px 0;
+}
+
+.nav-link:hover {
+  opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+  .site-header {
+    padding: 1.5rem 1.5rem;
+  }
+  .site-nav {
+    gap: 1.2rem;
+  }
+}
+
+/* ==========================================================================
+   PINNED SCROLLYTELLING ARCHITECTURE
+   ========================================================================== */
+
+.pinned-section {
+  position: relative;
+  width: 100%;
+}
+
+.hero-section {
+  height: 600vh; /* configured via CONFIG.heroScrollHeight */
+}
+
+.dismantle-section {
+  height: 350vh; /* configured via CONFIG.dismantleScrollHeight */
+}
+
+.sticky-stage {
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  background-color: var(--asphalt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stage-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  background-color: var(--asphalt);
+  transition: opacity 0.2s linear;
+}
+
+/* 1px Xenon Bottom Progress Line */
+.progress-track {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: var(--hairline);
+  z-index: 50;
+  pointer-events: none;
+}
+
+.progress-line {
+  height: 100%;
+  width: 0%;
+  background-color: var(--xenon);
+  will-change: width;
+}
+
+/* Static Reduced Motion Fallback */
+.reduced-motion-fallback {
+  display: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+}
+
+.reduced-motion-fallback .static-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.6s var(--ease);
+}
+
+.reduced-motion-fallback .static-frame.active {
+  opacity: 1;
+}
+
+/* ==========================================================================
+   SECTION 1: HERO
+   ========================================================================== */
+
+/* Left-Edge Telemetry HUD */
+.hud-panel {
+  position: absolute;
+  top: 50%;
+  left: 3.5rem;
+  transform: translateY(-50%);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 2.2rem;
+  pointer-events: none;
+}
+
+.hud-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  color: var(--fog);
+}
+
+.hud-chapter-group {
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hud-tick {
+  width: 6px;
+  height: 6px;
+  background-color: var(--taillight);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.hud-val {
+  font-size: 18px;
+  color: var(--bone);
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-unit {
+  font-size: 10px;
+  color: var(--fog);
+}
+
+/* Chapters in empty sky */
+.hero-chapters {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 30;
+  pointer-events: none;
+}
+
+.hero-chapter {
+  position: absolute;
+  opacity: 0;
+  transition: opacity 0.5s var(--ease);
+  pointer-events: none;
+}
+
+.hero-chapter.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Chapter 1: Top Left / Center Sky */
+.chap-1 {
+  top: 16vh;
+  left: 8vw;
+  max-width: 600px;
+}
+
+.hero-title {
+  margin-bottom: 0.6rem;
+  font-weight: 300;
+}
+
+.hero-subtitle {
+  color: var(--fog);
+  font-size: clamp(16px, 1.4vw, 20px);
+  margin-bottom: 2.5rem;
+}
+
+.hero-hint {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: var(--xenon);
+}
+
+.hint-bar {
+  width: 32px;
+  height: 1px;
+  background-color: var(--xenon);
+  animation: pulse-bar 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-bar {
+  0%, 100% { opacity: 0.3; transform: scaleX(0.7); }
+  50% { opacity: 1; transform: scaleX(1.3); }
+}
+
+/* Chapter 2: Centered Sky */
+.chap-2 {
+  top: 18vh;
+  left: 8vw;
+  max-width: 750px;
+}
+
+/* Chapter 3: Centered Sky Right */
+.chap-3 {
+  top: 18vh;
+  right: 8vw;
+  max-width: 650px;
+  text-align: right;
+}
+
+/* Chapter 4: GT-E Specs & Link */
+.chap-4 {
+  top: 16vh;
+  left: 8vw;
+  max-width: 720px;
+}
+
+.hero-model-title {
+  font-size: clamp(52px, 8vw, 110px);
+  margin-bottom: 0.8rem;
+}
+
+.hero-specs-row {
+  color: var(--xenon);
+  margin-bottom: 1.8rem;
+  letter-spacing: 0.16em;
+}
+
+.hero-cta-link {
+  display: inline-block;
+  color: var(--bone);
+  border-bottom: 1px solid var(--xenon);
+  padding-bottom: 4px;
+  transition: color 0.2s linear, border-color 0.2s linear;
+}
+
+.hero-cta-link:hover {
+  color: var(--xenon);
+}
+
+@media (max-width: 768px) {
+  .hud-panel {
+    top: auto;
+    bottom: 2.5rem;
+    left: 1.5rem;
+    transform: none;
+    flex-direction: row;
+    gap: 1.5rem;
+  }
+  .chap-1, .chap-2, .chap-3, .chap-4 {
+    top: 12vh;
+    left: 1.5rem;
+    right: 1.5rem;
+    text-align: left;
+    max-width: none;
+  }
+}
+
+/* ==========================================================================
+   SECTION 2: STATEMENT (100vh Word-by-Word Scroll Reveal)
+   ========================================================================== */
+
+.statement-section {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6rem 8vw;
+  background-color: var(--asphalt);
+  position: relative;
+  z-index: 10;
+}
+
+.statement-container {
+  max-width: 1300px;
+  text-align: center;
+}
+
+.statement-text {
+  font-size: clamp(36px, 5.2vw, 84px);
+  line-height: 1.15;
+  color: var(--bone);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.3em;
+}
+
+.statement-word {
+  opacity: 0.15; /* 15% resting opacity */
+  transition: opacity 0.2s linear;
+  display: inline-block;
+}
+
+/* ==========================================================================
+   SECTION 3: DISMANTLE (Pinned 350vh)
+   ========================================================================== */
+
+.dismantle-header {
+  position: absolute;
+  top: 3.5rem;
+  left: 3.5rem;
+  z-index: 40;
+  pointer-events: none;
+}
+
+.dismantle-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 35;
+}
+
+.dismantle-svg line {
+  stroke: var(--xenon);
+  stroke-width: 1px;
+  opacity: 0;
+  transition: opacity 0.4s var(--ease);
+}
+
+.dismantle-callouts-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 36;
+  pointer-events: none;
+}
+
+.callout-item {
+  position: absolute;
+  opacity: 0;
+  transition: opacity 0.5s var(--ease), transform 0.5s var(--ease);
+  pointer-events: none;
+}
+
+.callout-item.is-visible {
+  opacity: 1;
+}
+
+.callout-dot {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background-color: var(--xenon);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.callout-content {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 200px;
+}
+
+.callout-label {
+  color: var(--xenon);
+  letter-spacing: 0.16em;
+}
+
+.callout-desc {
+  color: var(--bone);
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .dismantle-header {
+    top: 2rem;
+    left: 1.5rem;
+  }
+}
+
+/* ==========================================================================
+   SECTION 4: LINEUP (Hover Accordion, 100vh)
+   ========================================================================== */
+
+.lineup-section {
+  min-height: 100vh;
+  background-color: var(--asphalt);
+  padding: 5rem 3.5rem 3.5rem;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 20;
+  border-top: 1px solid var(--hairline);
+}
+
+.lineup-header {
+  margin-bottom: 2.5rem;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
+}
+
+.lineup-header.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.lineup-title {
+  font-size: clamp(32px, 4vw, 68px);
+}
+
+.accordion-container {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 64vh;
+  min-height: 540px;
+  border-left: 1px solid var(--hairline);
+  position: relative;
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
+}
+
+.accordion-container.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.accordion-slide {
+  position: relative;
+  height: 100%;
+  flex: 1 1 0%;
+  min-width: 0;
+  border-right: 1px solid var(--hairline);
+  background-color: var(--asphalt);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: flex 0.7s var(--ease);
+}
+
+.accordion-slide.is-open {
+  flex: 4.5 1 0%; /* expands smoothly */
+}
+
+/* Closed Slide View */
+.slide-closed-view {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2.5rem 0.8rem;
+  opacity: 1;
+  transition: opacity 0.35s var(--ease);
+  pointer-events: none;
+}
+
+.accordion-slide.is-open .slide-closed-view {
+  opacity: 0;
+}
+
+.slide-closed-num {
+  color: var(--fog);
+}
+
+.slide-closed-name {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  letter-spacing: 0.22em;
+  font-size: 13px;
+  color: var(--bone);
+}
+
+.slide-closed-thumb-wrap {
+  width: 100%;
+  height: 90px;
+  overflow: hidden;
+}
+
+.slide-closed-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: right 72%; /* Cropped tight on front light bar */
+  filter: grayscale(100%) brightness(0.25);
+  transition: filter 0.5s var(--ease);
+}
+
+/* Open Slide View */
+.slide-open-view {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 2.5rem 3rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s var(--ease);
+}
+
+.accordion-slide.is-open .slide-open-view {
+  opacity: 1;
+  pointer-events: auto;
+  transition-delay: 0.15s;
+}
+
+.slide-open-header {
+  display: flex;
+  align-items: baseline;
+  gap: 1.2rem;
+  z-index: 5;
+}
+
+.slide-open-num {
+  color: var(--fog);
+  font-size: 13px;
+}
+
+.slide-open-title {
+  font-size: clamp(40px, 4.8vw, 76px);
+}
+
+/* Car Stage & Floor Line */
+.slide-car-stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slide-car-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: translateX(-6%);
+  opacity: 0.85;
+  transition: transform 0.7s var(--ease), opacity 0.5s var(--ease);
+}
+
+.accordion-slide.is-open .slide-car-img {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+/* Shared floor line sitting at 72% height */
+.slide-floor-line {
+  position: absolute;
+  top: 72%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: var(--hairline);
+}
+
+/* Details Under Car */
+.slide-details {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  max-width: 650px;
+}
+
+.slide-tagline {
+  font-size: 16px;
+  color: var(--bone);
+}
+
+.slide-specs-row {
+  display: flex;
+  gap: 2.5rem;
+}
+
+.spec-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.spec-label {
+  color: var(--fog);
+  font-size: 10px;
+}
+
+.spec-val {
+  color: var(--xenon);
+  font-size: 13px;
+}
+
+.slide-footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.5rem;
+}
+
+.swatches-row {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.swatch {
+  width: 12px;
+  height: 12px;
+  display: inline-block;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.swatch.is-active {
+  border-color: var(--bone);
+}
+
+.slide-configure-link {
+  color: var(--bone);
+  border-bottom: 1px solid var(--hairline);
+  padding-bottom: 2px;
+  transition: border-color 0.2s linear, color 0.2s linear;
+}
+
+.slide-configure-link:hover {
+  border-color: var(--xenon);
+  color: var(--xenon);
+}
+
+/* Mobile Accordion Stacking (< 768px) */
+@media (max-width: 768px) {
+  .lineup-section {
+    padding: 3rem 1.5rem 2rem;
+  }
+  .accordion-container {
+    flex-direction: column;
+    height: auto;
+    border-left: none;
+    border-top: 1px solid var(--hairline);
+  }
+  .accordion-slide {
+    width: 100%;
+    height: 72px; /* 72px collapsed rows */
+    flex: none !important;
+    border-right: none;
+    border-bottom: 1px solid var(--hairline);
+    transition: height 0.6s var(--ease);
+  }
+  .accordion-slide.is-open {
+    height: 480px;
+  }
+  .slide-closed-view {
+    flex-direction: row;
+    padding: 0 1.5rem;
+    height: 72px;
+  }
+  .slide-closed-name {
+    writing-mode: horizontal-tb;
+    transform: none;
+  }
+  .slide-closed-thumb-wrap {
+    width: 60px;
+    height: 36px;
+  }
+  .slide-open-view {
+    padding: 1.5rem 1.5rem;
+  }
+}
+
+/* ==========================================================================
+   SECTION 5: RESERVE (100vh)
+   ========================================================================== */
+
+.reserve-section {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--asphalt);
+  padding: 6rem 3.5rem;
+  position: relative;
+  z-index: 20;
+  border-top: 1px solid var(--hairline);
+}
+
+.reserve-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 2rem;
+  max-width: 800px;
+}
+
+.reserve-title {
+  font-size: clamp(48px, 6.5vw, 100px);
+}
+
+.reserve-desc {
+  max-width: 44ch;
+}
+
+/* Xenon Outline Button with Taillight Red Tick */
+.reserve-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1.1rem 2.8rem;
+  border: 1px solid var(--xenon);
+  background-color: transparent;
+  color: var(--bone);
+  position: relative;
+  transition: background-color 0.25s var(--ease), color 0.25s var(--ease), border-color 0.25s var(--ease);
+}
+
+.btn-tick {
+  width: 2px;
+  height: 14px;
+  background-color: var(--taillight);
+  opacity: 0;
+  transform: scaleY(0);
+  transition: opacity 0.25s var(--ease), transform 0.25s var(--ease);
+}
+
+.reserve-button:hover {
+  background-color: var(--xenon);
+  color: var(--asphalt);
+  border-color: var(--xenon);
+}
+
+.reserve-button:hover .btn-tick {
+  opacity: 1;
+  transform: scaleY(1);
+}
+
+/* ==========================================================================
+   FOOTER
+   ========================================================================== */
+
+.site-footer {
+  background-color: var(--asphalt);
+  border-top: 1px solid var(--hairline);
+  padding: 5rem 3.5rem 3rem;
+  position: relative;
+  z-index: 20;
+}
+
+.footer-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  max-width: 1720px;
+  margin: 0 auto 5rem;
+  flex-wrap: wrap;
+  gap: 3.5rem;
+}
+
+.footer-logo {
+  font-size: 26px;
+  letter-spacing: 0.08em;
+  color: var(--bone);
+}
+
+.footer-links-grid {
+  display: flex;
+  gap: 5rem;
+  flex-wrap: wrap;
+}
+
+.footer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.col-title {
+  color: var(--fog);
+  font-size: 11px;
+}
+
+.col-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.footer-link {
+  color: var(--bone);
+  font-size: 11px;
+  transition: color 0.2s linear;
+}
+
+.footer-link:hover {
+  color: var(--xenon);
+}
+
+.footer-bottom {
+  max-width: 1720px;
+  margin: 0 auto;
+  border-top: 1px solid var(--hairline);
+  padding-top: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-copy {
+  color: var(--fog);
+  font-size: 10px;
+}
+
+@media (max-width: 768px) {
+  .site-footer {
+    padding: 3rem 1.5rem 2rem;
+  }
+  .footer-links-grid {
+    gap: 2.5rem;
+  }
+  .footer-top {
+    margin-bottom: 3rem;
+  }
+}
+
+/* ==========================================================================
+   REDUCED MOTION ACCESSIBILITY
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .pinned-section {
+    height: auto !important;
+  }
+  .sticky-stage {
+    position: relative !important;
+    height: 100vh !important;
+  }
+  .stage-canvas {
+    display: none !important;
+  }
+  .reduced-motion-fallback {
+    display: block !important;
+  }
+  .cursor {
+    display: none !important;
+  }
+  body {
+    cursor: auto !important;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+  .line-mask > * {
+    transform: none !important;
+  }
+}
+

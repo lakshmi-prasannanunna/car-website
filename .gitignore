@@ -1,0 +1,13 @@
+# OS metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Redundant archives
+*.zip.zip
+
+# Logs and temp files
+*.log
+*.tmp
+.system_generated/
+tools_img/
